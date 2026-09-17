@@ -8,7 +8,7 @@ const quotes = [
     source: "SMU Meadows School of the Arts"
   },
   {
-    text: "Creative coding sits at the intersection of programming and visual art. It's not about shipping products or optimizing algorithms. It's about using code as a paintbrush, a chisel, a musical instrument, a tool for expression.",
+    text: "Creative coding sits at the intersection of programming and visual art. It's about using code as a tool for expression.",
     source: "Lumitree"
   },
   {
@@ -16,19 +16,19 @@ const quotes = [
     source: "Jerwood Visual Arts"
   },
   {
-    text: "Creative coding is a process based on exploration, iteration, reflection and discovery, where code is used as the primary medium to create a wide range of media artifacts.",
+    text: "Creative coding is a process based on exploration, iteration, reflection and discovery, where code is used as the primary medium.",
     source: "Tim Rodenbroeker"
   },
   {
-    text: "Creative coding involves using programming languages to create expressive artworks and interactives, often blurring the line between art and technology.",
+    text: "Creative coding involves using programming languages to create expressive artworks and interactives.",
     source: "VAIA"
   },
   {
-    text: "Creative coding is a specialty that utilizes code and programming to create more expressive, designed, and custom web designs.",
+    text: "Creative coding utilizes code and programming to create expressive and designed digital experiences.",
     source: "Wix Studio"
   },
   {
-    text: "Creative coding encompasses a variety of code-based artistic practices and original work created using code.",
+    text: "Creative coding encompasses a variety of code-based artistic practices.",
     source: "Kunstplaza"
   }
 ];
@@ -55,7 +55,7 @@ function drawQuote() {
 
   textSize(20);
   textStyle(NORMAL);
-  text("Creative Coding is.....", width / 2, height / 2 - 90);
+  text("Creative Coding is...", width / 2, height / 2 - 100);
 
   textSize(32);
   textStyle(BOLD);
