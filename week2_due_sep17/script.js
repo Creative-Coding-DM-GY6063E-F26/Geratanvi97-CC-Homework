@@ -46,31 +46,50 @@ function pickQuote() {
 
 function draw() {
   background(255, 20, 250);
-  drawQuote();
-}
 
-function drawQuote() {
   fill(10, 255, 10);
   textAlign(CENTER, CENTER);
 
-  textSize(20);
+  // Heading
+  textSize(22);
   textStyle(NORMAL);
-  text("Creative Coding is...", width / 2, height / 2 - 100);
-
-  textSize(32);
-  textStyle(BOLD);
   text(
-    "“" + current.text + "”",
+    "Creative Coding is...",
     width / 2,
-    height / 2,
-    width - 200,
-    300
+    height * 0.28
   );
 
+  // Main definition
+  textSize(34);
+  textStyle(BOLD);
+
+  text(
+    "“" + current.text + "”",
+    width * 0.15,
+    height * 0.35,
+    width * 0.70,
+    height * 0.30
+  );
+
+  // Source
   textSize(18);
   textStyle(NORMAL);
-  textAlign(RIGHT, CENTER);
-  text("- " + current.source, width - 100, height - 100);
+  textAlign(CENTER, CENTER);
+
+  text(
+    "- " + current.source,
+    width / 2,
+    height * 0.72
+  );
+
+  // Small instruction
+  textSize(14);
+
+  text(
+    "click anywhere for another definition",
+    width / 2,
+    height * 0.88
+  );
 }
 
 function windowResized() {
