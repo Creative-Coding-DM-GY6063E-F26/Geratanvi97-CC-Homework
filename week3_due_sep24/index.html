@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Assignment 3: Process Drawing</title>
+
+  <script src="p5.js"></script>
+  <script src="p5.sound.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: auto;
+      padding: 40px;
+      line-height: 1.6;
+      background: #fafafa;
+      color: #222;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      margin-top: 50px;
+    }
+
+    img {
+      max-width: 100%;
+      margin-top: 15px;
+      margin-bottom: 20px;
+    }
+
+    .results {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Assignment 3: Process Drawing</h1>
+
+  <p>
+    For this assignment, I used a section of Julie Mehretu's
+    <i>Stadia II</i> as a visual reference.
+  </p>
+
+
+  <h2>Reference Image</h2>
+
+  <img src="reference.jpg" alt="Reference image">
+
+
+  <h2>Selected Patch</h2>
+
+  <img src="patch.jpg" alt="Selected patch">
+
+  <p>
+    I focused on the circles, triangular forms, and intersecting lines
+    visible in this section and simplified them into three basic shapes.
+  </p>
+
+
+  <h2>Interactive p5.js Drawing</h2>
+
+  <p>
+    Click inside the canvas to generate a new variation.
+  </p>
+
+  <main></main>
+
+
+  <h2>Different Outcomes</h2>
+
+  <div class="results">
+
+    <img src="result1.png" alt="Result 1">
+
+    <img src="result2.png" alt="Result 2">
+
+    <img src="result3.png" alt="Result 3">
+
+    <img src="result4.png" alt="Result 4">
+
+  </div>
+
+
+  <h2>Reflection</h2>
+
+  <p>
+    I started by selecting a small patch from the reference image rather
+    than trying to recreate the entire composition. I noticed repeated
+    circles, directional triangular forms, and intersecting lines, so I
+    reduced the patch into those three basic shapes.
+  </p>
+
+  <p>
+    On paper, I experimented with moving, scaling, and rotating the shapes.
+    In p5.js, I used translate(), rotate(), random(), and mouse interaction
+    so that parts of the composition change when the canvas is clicked.
+  </p>
+
+  <p>
+    Some elements stay fixed while others change. I liked this because the
+    result still keeps some connection to the original patch instead of
+    becoming completely random.
+  </p>
+
+
+  <script src="sketch.js"></script>
+
+</body>
+</html>
