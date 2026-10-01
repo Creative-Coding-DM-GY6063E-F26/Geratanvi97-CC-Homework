@@ -1,4 +1,5 @@
 let spacing = 12;
+let saveSVG = false;
 
 function setup() {
   createCanvas(600, 600);
@@ -6,11 +7,17 @@ function setup() {
 }
 
 function draw() {
+
   background(255);
   noFill();
   strokeWeight(1);
 
-  // blue wave layer
+  // start recording SVG
+  if (saveSVG == true) {
+    beginRecordSvg(this, "moire_pattern.svg");
+  }
+
+  // BLUE WAVE LAYER
   stroke(40, 90, 180);
 
   for (let x = 60; x < 540; x += spacing) {
@@ -18,14 +25,17 @@ function draw() {
     beginShape();
 
     for (let y = 60; y < 540; y += 8) {
+
       let wave = sin(y * 2) * 12;
+
       vertex(x + wave, y);
     }
 
     endShape();
   }
 
-  // red rotated wave layer
+
+  // RED WAVE LAYER
   push();
 
   translate(width / 2, height / 2);
@@ -38,7 +48,9 @@ function draw() {
     beginShape();
 
     for (let y = -240; y < 240; y += 8) {
+
       let wave = sin(y * 2) * 12;
+
       vertex(x + wave, y);
     }
 
@@ -46,4 +58,22 @@ function draw() {
   }
 
   pop();
+
+
+  // finish recording SVG
+  if (saveSVG == true) {
+
+    endRecordSvg();
+
+    saveSVG = false;
+  }
+}
+
+
+function keyPressed() {
+
+  if (key == 's' || key == 'S') {
+
+    saveSVG = true;
+  }
 }
