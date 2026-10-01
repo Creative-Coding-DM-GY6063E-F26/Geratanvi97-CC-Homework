@@ -10,3 +10,4 @@ Programming Computers, The browser and javascript, setting up an IDE, Git and Gi
 
 ## Assignment
 Assignment 1: Setting up your environment (Due Sep 10)
+
