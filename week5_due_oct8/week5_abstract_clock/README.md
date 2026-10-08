@@ -1,4 +1,4 @@
-# Time Garden — Interactive Abstract Clock
+# Time Garden: Interactive Abstract Clock
 
 ## Concept
 
