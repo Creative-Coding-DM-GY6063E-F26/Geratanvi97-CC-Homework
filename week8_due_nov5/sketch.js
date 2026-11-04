@@ -21,6 +21,8 @@ function setup() {
 
   // Start camera
   vid = createCapture(VIDEO);
+  //KEVINS ADDITION, replace the above line 
+  // vid = createCapture(VIDEO, { flipped: true });// this flips the mirror for webcams
   vid.size(320, 240);
   vid.hide();
 
@@ -35,12 +37,14 @@ function draw() {
   // Check if a hand is detected
   if (hands.length > 0) {
     let hand = hands[0];
-
+   
     // Finger positions
     let finger = hand.keypoints[8];
     let thumb = hand.keypoints[4];
     let pinky = hand.keypoints[20];
-
+    //KEVINS ADDITION
+    //let indexFinger = hand.index_finger_tip;//directly access the index finger
+    
     // Reverse X to fix mirror movement
     let x = map(finger.x, 0, 320, width, 0);
     let y = map(finger.y, 0, 240, 0, height);
@@ -90,12 +94,14 @@ function drawFlower(x, y, size) {
 
   // Petals
   fill(colors[colorIndex]);
-
+  
+  ////KEVINS ADDITION, consider consolidating repeated code as a final polish 
+  //let _x_left = x-size / 2;
   // Top petal
-  rect(x - size / 2, y - size * 2, size, size * 1.5);
+  rect(x-size / 2, y - size * 2, size, size * 1.5);
 
   // Bottom petal
-  rect(x - size / 2, y + size / 2, size, size);
+  rect(x-size / 2, y + size / 2, size, size);
 
   // Left petal
   rect(x - size * 2, y - size / 2, size * 1.5, size);
@@ -161,6 +167,8 @@ function clearDrawing() {
 }
 
 // Keyboard controls
+//KEVINS SUGGESTION: use keyboard for exporting, saving and clearing interactions, but everything else
+//use gesture control
 function keyPressed() {
   if (key === 'k') {
     colorIndex = (colorIndex + 1) % colors.length;
@@ -173,6 +181,9 @@ function keyPressed() {
 
   if (key === 's') {
     saveCanvas('pixel-bloom', 'png');
+    //KEVINS ADDITION
+    //either do this with millis() or the javascript Date() object
+    //saveCanvas('pixel-bloom_'+new Date().UTC(), 'png');
   }
 }
 
