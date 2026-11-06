@@ -3,180 +3,366 @@ let vid;
 let handPose;
 let hands = [];
 
-// Flower colors
-let colors = ['pink', 'plum', 'coral', 'lightblue'];
-let colorIndex = 0;
+// Gesture settings
+let isPinching = false;
+let pinchFrames = 0;
+let releaseFrames = 0;
 
-// Last flower position
-let lastX = -100;
-let lastY = -100;
+// Tree movement
+let bloomAmount = 0;
+let targetBloom = 0;
 
-// Load hand tracking
+let sideBias = 0;
+let targetSideBias = 0;
+
+// Wave detection
+let previousX = null;
+let waveCooldown = 0;
+
+// Freeze the drawing
+let frozen = false;
+
+// Color themes
+let themeIndex = 0;
+
+let themes = [
+  {
+    name: 'Cherry Blossom',
+    bg: '#14171C',
+    trunk: '#765B4D',
+    branch: '#B78C91',
+    blossom: '#E7AFC2',
+    highlight: '#F8DDE5'
+  },
+  {
+    name: 'Winter Blue',
+    bg: '#101923',
+    trunk: '#536C7C',
+    branch: '#86AFC2',
+    blossom: '#B5D9E9',
+    highlight: '#E2F3FA'
+  },
+  {
+    name: 'Golden Hour',
+    bg: '#201A17',
+    trunk: '#805C40',
+    branch: '#BE9268',
+    blossom: '#E8B76F',
+    highlight: '#F9DEAC'
+  },
+  {
+    name: 'Lavender Night',
+    bg: '#191620',
+    trunk: '#67586F',
+    branch: '#A68BAE',
+    blossom: '#C7ACD8',
+    highlight: '#EBDAF2'
+  }
+];
+
+// Load ml5 HandPose
 function preload() {
   handPose = ml5.handPose();
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  angleMode(DEGREES);
 
-  // Start camera
+  // Start webcam
   vid = createCapture(VIDEO);
   vid.size(320, 240);
   vid.hide();
 
-  // Start hand detection
+  // Start hand tracking
   handPose.detectStart(vid, gotHands);
-
-  clearDrawing();
 }
 
 function draw() {
+  background(themes[themeIndex].bg);
 
-  // Check if a hand is detected
+  // Read hand gestures
+  if (!frozen) {
+    detectGestures();
+
+    // Smooth tree movement
+    bloomAmount = lerp(bloomAmount, targetBloom, 0.06);
+    sideBias = lerp(sideBias, targetSideBias, 0.08);
+  }
+
+  drawTree();
+  drawUI();
+
+  if (waveCooldown > 0) {
+    waveCooldown--;
+  }
+}
+
+// Detect pinching and waving
+function detectGestures() {
+
   if (hands.length > 0) {
     let hand = hands[0];
 
-    // Finger positions
-    let finger = hand.keypoints[8];
     let thumb = hand.keypoints[4];
-    let pinky = hand.keypoints[20];
+    let index = hand.keypoints[8];
+    let wrist = hand.keypoints[0];
+    let middle = hand.keypoints[9];
 
-    // Reverse X to fix mirror movement
-    let x = map(finger.x, 0, 320, width, 0);
-    let y = map(finger.y, 0, 240, 0, height);
-
-    // Distance between thumb and pinky
-    let fingerDistance = dist(
+    // PINCH DETECTION
+    let pinchDistance = dist(
       thumb.x, thumb.y,
-      pinky.x, pinky.y
+      index.x, index.y
     );
 
-    // Change flower size with hand opening
-    let flowerSize = map(fingerDistance, 30, 180, 12, 30);
-    flowerSize = constrain(flowerSize, 12, 30);
+    // Measure the hand for better detection
+    let handSize = dist(
+      wrist.x, wrist.y,
+      middle.x, middle.y
+    );
 
-    // Distance from last flower
-    let moveDistance = dist(x, y, lastX, lastY);
+    let pinchRatio = pinchDistance / max(handSize, 1);
 
-    // Draw flowers when finger moves
-    if (moveDistance > 40) {
-      drawFlower(x, y, flowerSize);
-
-      lastX = x;
-      lastY = y;
+    if (pinchRatio < 0.35) {
+      pinchFrames++;
+      releaseFrames = 0;
+    } else if (pinchRatio > 0.55) {
+      releaseFrames++;
+      pinchFrames = 0;
     }
+
+    if (pinchFrames >= 3) {
+      isPinching = true;
+    }
+
+    if (releaseFrames >= 3) {
+      isPinching = false;
+    }
+
+    // Pinching opens the tree
+    if (isPinching) {
+      targetBloom = 1;
+    } else {
+      targetBloom = 0;
+    }
+
+    // WAVE DETECTION
+    // Track the wrist instead of the fingertip
+    // to avoid confusing pinching with waving
+
+    let currentX = width - map(
+      wrist.x, 0, 320, 0, width
+    );
+
+    if (previousX !== null && waveCooldown === 0 && !isPinching) {
+      let movement = currentX - previousX;
+
+      if (movement > 25) {
+        targetSideBias = 1;
+        waveCooldown = 20;
+      }
+
+      if (movement < -25) {
+        targetSideBias = -1;
+        waveCooldown = 20;
+      }
+    }
+
+    previousX = currentX;
+
   } else {
-    // Reset when no hand is detected
-    lastX = -100;
-    lastY = -100;
+    // No hand detected
+    isPinching = false;
+    pinchFrames = 0;
+    releaseFrames = 0;
+    targetBloom = 0;
+    previousX = null;
+  }
+}
+
+// Draw the tree
+function drawTree() {
+  push();
+
+  // Tree starts at bottom center
+  translate(width / 2, height - 40);
+
+  // Main trunk
+  stroke(themes[themeIndex].trunk);
+  strokeWeight(10);
+
+  line(0, 0, 0, -140);
+  translate(0, -140);
+
+  // Pinching controls branch spread
+  let spread = map(bloomAmount, 0, 1, 12, 42);
+
+  // Waving changes branching direction
+  let leftAngle = spread - sideBias * 12;
+  let rightAngle = spread + sideBias * 12;
+
+  branch(140, 0, leftAngle, rightAngle);
+
+  pop();
+}
+
+// Recursive branches
+function branch(len, level, leftAngle, rightAngle) {
+
+  // Each branch gets shorter
+  let newLen = len * 0.68;
+
+  // Draw blossom at the end
+  if (newLen < 7) {
+    drawBlossom();
+    return;
   }
 
-  // Draw camera preview and status
-  drawCameraPreview();
-}
+  // Make branches thinner as they grow
+  stroke(themes[themeIndex].branch);
 
-// Pixelated flower
-function drawFlower(x, y, size) {
-  noStroke();
+  let thickness = map(len, 7, 140, 1, 7);
+  strokeWeight(thickness);
 
-  // Stem
-  fill('seagreen');
-  rect(x - 4, y + size, 8, size * 2);
-
-  // Leaves
-  fill('mediumseagreen');
-  rect(x - size, y + size * 2, size, 10);
-  rect(x, y + size * 1.5, size, 10);
-
-  // Petals
-  fill(colors[colorIndex]);
-
-  // Top petal
-  rect(x - size / 2, y - size * 2, size, size * 1.5);
-
-  // Bottom petal
-  rect(x - size / 2, y + size / 2, size, size);
-
-  // Left petal
-  rect(x - size * 2, y - size / 2, size * 1.5, size);
-
-  // Right petal
-  rect(x + size / 2, y - size / 2, size * 1.5, size);
-
-  // Center
-  fill('gold');
-  rect(x - size / 2, y - size / 2, size, size);
-
-  fill('orange');
-  rect(x - 3, y - 3, 6, 6);
-}
-
-// Camera preview
-function drawCameraPreview() {
-  // Cover previous preview
-  noStroke();
-  fill('papayawhip');
-  rect(10, height - 155, 190, 155);
-
-  // Display camera, mirrored to match movement
+  // Right branch
   push();
-  translate(180, 0);
-  scale(-1, 1);
-  image(vid, 10, height - 145, 160, 120);
+
+  rotate(rightAngle);
+  line(0, 0, 0, -newLen);
+  translate(0, -newLen);
+
+  branch(newLen, level + 1, leftAngle, rightAngle);
+
   pop();
 
-  // Hand detection status
-  fill('black');
-  textSize(12);
-  textAlign(LEFT);
+  // Left branch
+  push();
 
-  if (hands.length > 0) {
-    text('Hand detected', 10, height - 10);
+  rotate(-leftAngle);
+  line(0, 0, 0, -newLen);
+  translate(0, -newLen);
+
+  branch(newLen, level + 1, leftAngle, rightAngle);
+
+  pop();
+}
+
+// Blossoms at branch tips
+function drawBlossom() {
+  noStroke();
+
+  // Blossoms grow during pinch
+  let blossomSize = map(bloomAmount, 0, 1, 2, 9);
+
+  fill(themes[themeIndex].blossom);
+  circle(0, 0, blossomSize);
+
+  fill(themes[themeIndex].highlight);
+  circle(-2, -2, blossomSize * 0.5);
+}
+
+// Interface
+function drawUI() {
+  noStroke();
+  fill('#F1ECE8');
+  textAlign(CENTER);
+
+  textSize(26);
+  text('BLOOM TREE', width / 2, 42);
+
+  textSize(14);
+  text('Pinch to bloom | Wave to change direction',
+       width / 2, 68);
+
+  text('P = Pink   B = Blue   G = Gold   L = Lavender',
+       width / 2, 90);
+
+  text('C = Cycle   F = Freeze   S = Save   R = Reset',
+       width / 2, 110);
+
+  textSize(13);
+
+  // Current color theme
+  text(themes[themeIndex].name,
+       width / 2, 140);
+
+  // Hand detection status
+  if (frozen) {
+    text('Composition frozen', width / 2, height - 25);
+  } else if (hands.length === 0) {
+    text('Show your hand to the camera', width / 2, height - 25);
+  } else if (isPinching) {
+    text('Pinch detected - Tree blooming',
+         width / 2, height - 25);
   } else {
-    text('Show your hand to camera', 10, height - 10);
+    text('Hand detected', width / 2, height - 25);
   }
 }
 
-// Receive hand data
+// Receive hand tracking results
 function gotHands(results) {
   hands = results;
 }
 
-// Clear drawing
-function clearDrawing() {
-  background('papayawhip');
-
-  fill('black');
-  textAlign(CENTER);
-  textSize(22);
-  text('PIXEL BLOOM', width / 2, 40);
-
-  textSize(14);
-  text('Move your index finger to plant flowers', width / 2, 65);
-  text('Open your hand to change flower size', width / 2, 85);
-  text('K = color | SPACE = clear | S = save', width / 2, 105);
-
-  lastX = -100;
-  lastY = -100;
-}
-
 // Keyboard controls
 function keyPressed() {
-  if (key === 'k') {
-    colorIndex = (colorIndex + 1) % colors.length;
+
+  // Pink
+  if (key === 'p' || key === 'P') {
+    themeIndex = 0;
   }
 
-  if (keyCode === 32) {
-    clearDrawing();
-    return false;
+  // Blue
+  if (key === 'b' || key === 'B') {
+    themeIndex = 1;
   }
 
-  if (key === 's') {
-    saveCanvas('pixel-bloom', 'png');
+  // Gold
+  if (key === 'g' || key === 'G') {
+    themeIndex = 2;
+  }
+
+  // Lavender
+  if (key === 'l' || key === 'L') {
+    themeIndex = 3;
+  }
+
+  // Cycle themes
+  if (key === 'c' || key === 'C') {
+    themeIndex = (themeIndex + 1) % themes.length;
+  }
+
+  // Freeze the tree
+  if (key === 'f' || key === 'F') {
+    frozen = !frozen;
+  }
+
+  // Save image
+  if (key === 's' || key === 'S') {
+    saveCanvas('bloom-tree', 'png');
+  }
+
+  // Reset
+  if (key === 'r' || key === 'R') {
+    frozen = false;
+
+    isPinching = false;
+    pinchFrames = 0;
+    releaseFrames = 0;
+
+    bloomAmount = 0;
+    targetBloom = 0;
+
+    sideBias = 0;
+    targetSideBias = 0;
+
+    previousX = null;
+    waveCooldown = 0;
+
+    themeIndex = 0;
   }
 }
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  clearDrawing();
 }
